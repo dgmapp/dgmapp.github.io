@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,user-scalable=no,minimum-scale=1.0,maximum-scale=1.0">
+<html>
+	<style>
+		body{
+			padding:0;
+			margin:0;
+		}
+		#subpanel{
+			position:fixed;
+			z-index:101;
+			float:left;
+			left:100px;
+			top:20%;
+			width:150px;
+			height:80%;
+			background:white;
+			font-family:Arial;
+			overflow:hidden;
+			overflow-y:scroll;
+			overflow-x:hidden;
+			opacity:0.9;
+			border-radius:10px;
+		}
+		#panel{
+			position:fixed;
+			z-index:101;
+			float:right;
+			right:100px;
+			top:20%;
+			width:150px;
+			height:80%;
+			background:white;
+			font-family:Arial;
+			overflow:hidden;
+			overflow-y:scroll;
+			overflow-x:hidden;
+			opacity:0.9;
+			border-radius:10px;
+		}
+		.modes{
+			width:32px;
+			height:32px;
+			position:inline-block;
+		}
+		#modes{
+			width:96px;
+			white-space:nowrap;
+			padding:8px;
+		}
+		#dialog{
+			display:block;
+			position:fixed;
+			z-index:102;
+			width:100%;
+			height:100%;
+			background-color:black;
+			color:rgb(200,200,200);
+			font-family:Arial;
+			overflow:none;
+			overflow-x:none;
+			overflow-y:scroll;
+		}
+		#message{
+			position:fixed;
+			z-index:103;
+			float:left;
+			left:10px;
+			top:10px;
+			width:50%;
+			background:white;
+			font-family:Arial;
+			font-size:18px;
+		}
+		#stopbtn{
+			display:none;
+			position:fixed;
+			z-index:101;
+			left:10px;
+			top:10px;
+			width:48px;
+			height:48px;
+		}
+		#editmode{
+			display:none;
+			position:fixed;
+			width:50%;
+			font-family:Arial;
+			font-size:30px;
+			margin-left:25%;
+			margin-top:25px;
+			background:white;
+			text-align:center;
+			z-index:100;
+		}
+		#editmode_mat{
+			margin:4px;
+			float:right;
+			height:26px;
+			width:26px;
+		}
+		#editmode_img{
+			margin:4px;
+			float:right;
+			height:26px;
+			width:26px;
+		}
+		#bdivp{
+			display:block;
+			position:fixed;
+			z-index:20000;
+			width:100%;
+			height:100%;
+			font-family:Arial;
+			top:0;
+			left:0;
+		}
+		#bsnc{
+			display:block;
+			position:fixed;
+			z-index:20200;
+			font-size:30px;
+			left:50%;
+		}
+		#bdiv{
+			display:block;
+			z-index:20100;
+			width:100%;
+			height:100%;
+			top:0;
+			left:0;
+		}
+		.pic{
+			display:inline-block;
+			width:48px;
+			height:48px;
+			margin:8px;
+			margin-top:2px;
+		}
+		.picw{
+			display:inline-block;
+			width:116px;
+			height:48px;
+			margin:8px;
+			margin-top:2px;
+		}
+		.picm{
+			display:inline-block;
+			width:26px;
+			height:26px;
+			margin-left:8px;
+			margin-top:8px;
+			margin-bottom:8px;
+			margin-right:7px;
+		}
+	</style>
+	<xml id="toolbox" style="display: none">
+		<category name="Control" colour="#9fa55b">
+		  <block type="if_then"></block>
+		  <block type="if_then_else"></block>
+		  <block type="while"></block>
+		  <block type="break"></block>
+		</category>
+		<category name="Logic" colour="#5ba55b">
+		  <block type="true"></block>
+		  <block type="false"></block>
+		  <block type="not"></block>
+		  <block type="and"></block>
+		  <block type="or"></block>
+		</category>
+		<category name="Number" colour="#5b67a5">
+		  <block type="number_value"></block>
+		  <block type="m_add"></block>
+		  <block type="m_subtract"></block>
+		  <block type="m_multiply"></block>
+		  <block type="m_subdivide"></block>
+		  <block type="m_equal"></block>
+		  <block type="m_not_equal"></block>
+		  <block type="m_big_equal"></block>
+		  <block type="m_sma_equal"></block>
+		  <block type="m_big"></block>
+		  <block type="m_sma"></block>
+		  <block type="math_operation"></block>
+		</category>
+		<category name="String" colour="#5ba58c">
+		  <block type="string_value"></block>
+		  <block type="string_join"></block>
+		  <block type="string_length"></block>
+		  <block type="string_equal"></block>
+		  <block type="string_starts"></block>
+		  <block type="string_ends"></block>
+		  <block type="string_split"></block>
+		</category>
+		<category name="List" colour="#a5745b">
+		<block type="list_value"></block>
+		<block type="list_add"></block>
+		<block type="list_set"></block>
+		<block type="list_get"></block>
+		<block type="list_length"></block>
+		</category>
+		<category name="Dictionary" colour="#a55b80">
+		<block type="dict_value"></block>
+		<block type="dict_set"></block>
+		<block type="dict_get"></block>
+		</category>
+		<category name="Variables" colour="#5ba5a5">
+		<block type="local_variable"></block>
+		<block type="global_variable"></block>
+		<block type="set_var"></block>
+		<block type="get_var"></block>
+		</category>
+		<category name="Functions" colour="#5b5ba5">
+		<block type="function"></block>
+		<block type="run_function"></block>
+		<block type="get_arg"></block>
+		</category>
+		<category name="Movement" colour="#00007a">
+		<block type="d_move_forward"></block>
+		<block type="d_move_backwards"></block>
+		<block type="d_move_turnleft"></block>
+		<block type="d_move_turnright"></block>
+		</category>
+		<category name="Transformations" colour="#8800ff">
+		<block type="d_setlocx"></block>
+		<block type="d_setlocy"></block>
+		<block type="d_setlocz"></block>
+		<block type="d_setrotx"></block>
+		<block type="d_setroty"></block>
+		<block type="d_setrotz"></block>
+		<block type="d_setscale"></block>
+		<block type="d_chlocx"></block>
+		<block type="d_chlocy"></block>
+		<block type="d_chlocz"></block>
+		<block type="d_chrotx"></block>
+		<block type="d_chroty"></block>
+		<block type="d_chrotz"></block>
+		<block type="d_getlocx"></block>
+		<block type="d_getlocy"></block>
+		<block type="d_getlocz"></block>
+		<block type="d_getrotx"></block>
+		<block type="d_getroty"></block>
+		<block type="d_getrotz"></block>
+		</category>
+		<category name="Miscellaneous" colour="#b93d3a">
+		<block type="misc_distance"></block>
+		</category>
+		<category name="Events" colour="#aaa510">
+		<block type="event_key"></block>
+		</category>
+	</xml>
+	<body>
+		<div id="bdivp">
+			<button id="bsnc">Save and close</button>
+			<div id="bdiv">
+			</div>
+		</div>
+		<div id="message"></div>
+		<div id="editmode">Edit mode<img id="editmode_mat" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAZCAYAAAArK+5dAAAABHNCSVQICAgIfAhkiAAAAG5JREFUSIntlkEOgDAIBGd9tU/or/XW9IJhtRxMmGMbGCAlqfC4gnNFAeGFKQjzHaYgU8B4NCYSZBHs72BlTIuB0wGAqgWlI2pBCzYhXqy/w/9H1IKUwH4ZrgDgrBKs1Wf24dMeiIJOoors/0/EDfXHCys44HpKAAAAAElFTkSuQmCC"><img id="editmode_img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAABHNCSVQICAgIfAhkiAAAAJFJREFUSIm9lVEKwCAMQ8Puj4gX7n43ZzutMYIfIs0rbY0AYI/dwFut034dDEA5ABmCDEAlQyy6yJTxV4sB8zQ+rdiBebFuCzKwdIIrgdslnxGgDVEkxJzUEEaFrMBo1hXBpiAXKxPGkpROMgyS8ZY8WIkFSUy1ZrNbgZUNyDRM9pWzH6DXgiMGOWrFGRdGV8YbiwIRkLhp/y4AAAAASUVORK5CYII="></div>
+		<img id="stopbtn" src="data:image/png;base64,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"/>
+		<div id="dialog">
+			<p style="font-size:30px;text-align:center;">Donkey Game Maker</p>
+			<p style="font-size:20px;text-align:center;">Version 3.0</br>
+				by Most Boring Games</p>
+			<p style="font-size:10px;text-align:center;color:gray;">
+			Legal Disclaimer: This is a non-commercial project.</p>
+			<center><img src="assets/donkeycube.gif"></center>
+		</div>
+		<div id="content"></div>
+		<div id="panel">
+			<img id="qadd1" class="pic" src="assets/add1.png"/>
+			<img id="qadd2" class="pic" src="assets/add2.png"/>
+			<img id="qadd3" class="pic" src="assets/add3.png"/>
+			<img id="qadd4" class="pic" src="assets/add4.png"/>
+			<img id="qadd5" class="picw" src="assets/moreobjects.png"/>
+			<img id="qdelete" class="pic" src="assets/del.png"/>
+			<img id="qclone" class="pic" src="assets/clone.png"/>
+			<img id="qrename" class="pic" src="assets/rename.png"/>
+			<img id="qmaterial" class="pic" src="assets/mat.png"/>
+			<img id="qaddsub" class="picm" src="assets/subadd.png"/>
+			<img id="qdelsub" class="picm" src="assets/subdel.png"/>
+			<img id="qmatsub" class="picm" src="assets/submat.png"/>
+			<img id="qrun" class="picw" src="assets/run.png"/>
+			<img id="qread" class="pic" src="assets/read.png"/>
+			<img id="qwrite" class="pic" src="assets/write.png"/>
+			<img id="qabout" class="picm" src="assets/about.png"/>
+		</div>
+		<div id="subpanel">
+			<div id="modes">
+				<img id="mc1" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABHNCSVQICAgIfAhkiAAAAP1JREFUaIHtmt0OwiAMRgvv/8zqjSUbazOm/SglPYk3mNDvLPwojAjL+/uBUYB998EhtVAC2lM3r4cQuBsypjWtBUbHu1ldS4Gnk9WktpXAryvN3/VRk7gQ0WtGrYrolMBr/xGUwDRSwJsU8CYFvNlaYNpmNICaRRNYKTwjZpIEVgzPXLL1AiuHZ04Zq/bF4rSspW8IRikUNzwRbbAPbDGEGEmiKu0jWB1sSX9PW3+1b7gJ4YGUoWXt5wDyqNGKU0ZpEq8sccmmrUIrSoiZwp9Oh98HUsCbFPAmBbxJAYVpO3leMR0IfcnHhL5mZUJfdDOhXzVgpvycRgN/3eYDLt0mQsqZssUAAAAASUVORK5CYII=" class="modes">
+				<img id="mc2" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABHNCSVQICAgIfAhkiAAAARZJREFUaIHtmmETgyAIhtHr///ktS+jXQTNFBRuPHd9yZXvW4A6A7Bl/xxmFMN7U+EmfVkZkJ66en8WBn6FjGqf2gZa412tX00DT5NVpW8tA72VxrKIDFHhW0LxCFWFACaV0Wpx05mkgeTfGakM2rPMLi3hcyC8ge2m7cno2RuKrWEoapHegOkqqhNWE2fAo3jkoo0a8CweOWmsUgPTvorbKCn0RAPcNRpJ3KUF5+1R2T2EyBAVHC/rGig4kBWQk3h2iNEHWgDgJf2u0hMED/nBaTi00hyIEE4njVwSezZx0SZVIY8mWE25oFlNeAPJavK/0dWkgdVYGZg2RQm/xZSbfITQ26xI6I1uJPSnBsiUkdga889t3jK1LkjYa5LKAAAAAElFTkSuQmCC" class="modes">
+				<img id="mc3" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABHNCSVQICAgIfAhkiAAAAthJREFUaIHdmrFqGzEYgD+f60wlxeDFeMlW6kCnNrs7eA1kzmjSIZshW4bSZ/AbeOhTtJ0CbeqGZPDQLskSQkimEBsKddzhdEX3n68nybJi9wMtd//9+iR0d5LuSvihAbwBXgObwAZQA555yr8QakAXGADTnLKUNIAeMCZf3KYBwRq7BhwCI4rFXRrg1IgnhnFN4APwMuf8BPgKfAS+Az+BSxFjIpjElAy9jNgB7pndw+fAAVA3lLMpXtgn7l2Z/Bp4C1QscgVvwH5O4j5QdcgXVH6HbM//Ajo+kgu8D5sm2TE/Atq+KhB4lV8DTsn2/KLkvXNIdjwuYti4MiV2nEmD7EuqH8arkHekh3NjVlCPtPw1bk8b31SJXXS3ngyqkZ3b7BUktn2uz/Po3BOxY+X8l64IOKf4JRWyARXlpMd39QA5JT4oSBi6ASgnPX6QnGgAD9qJ39jPbVyxyVEndkviH4BGBLRIz/6+AFdzSC2KK2K3hBLQioAtEfg5mJI90m0rIl7D6gxYXqTbZkS8ANf5EcbFCem2AXBH+mYy3UkIfRND7KZfcwfZaXN5QZX7yFEW10yiOSpfCiLiyZHO08cQMUS6jSLgRhw0eYk9FtLtJgIuxMHnYVyckG4XETAUB18FknFBug0j4FgcbAWScUG6HcN/MJm7BE60wDKwO4eIzym0zi7pd9QJ2vblyi9oVn5JCSu+qIfl3Vbpk3bK3VaB5dvY6szwyd3YguXaWmyrunWXU+X4T0Jv7s6iTXY43ys3I0Jur0s6ZHt+opys8P2Bo4gq2Rs2KfuuSX1+YsqjonLJR2XS887yCb4+8knq6lr5htXHvPWwyaMJnOVUNCWeZB0B74Ft4AWwrl2/ro5tq5gj0hMzWc6wuGFNcfnQbVtGqo7CR+U82PxqYFrGKmfuG3YRmPzsUVQGKkdmYmaKr0/6eb/bJPfBHXBLvP4eAt+AT2R/R7DmD6kaOsrzBGmFAAAAAElFTkSuQmCC" class="modes">
+			</div>
+			<div id="subpanelc"></div>
+			<div id="logic"></div>
+		</div>
+	</body>
+	<script src="blockly/blockly.min.js"></script>
+	<script src="blockly/aplify_blocks.js"></script>
+	<script type="module" src="script.js"></script>
+</html>
