@@ -1916,7 +1916,7 @@ class BlocklyComponent{
 }
 
 class ClientComponent{
-	constructor{
+	constructor(){
 		this.saveid="client";
 		this.label="Use object for every remote player";
 		this.properties={
@@ -1928,7 +1928,7 @@ class ClientComponent{
 }
 
 class ShareComponent{
-	constructor{
+	constructor(){
 		this.saveid="share";
 		this.label="Share object between players.";
 		this.properties={
