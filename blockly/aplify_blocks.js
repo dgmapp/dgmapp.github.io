@@ -749,31 +749,50 @@ Blockly.JavaScript['dict_get'] = function(block) {
   var code=value_dict+"["+value_key+"]";
   return [code, Blockly.JavaScript.ORDER_NONE];
 };
-//Global variable
-Blockly.Blocks['global_variable'] = {
+//Set Global variable
+Blockly.Blocks['set_global'] = {
   init: function() {
     this.appendValueInput("value")
         .setCheck(null)
-        .appendField("initialize global variable")
-        .appendField(new Blockly.FieldTextInput("myVariable"), "varname")
+        .appendField("Set global variable")
+        .appendField(new Blockly.FieldTextInput("myVariable"), "name")
         .appendField("to");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
     this.setColour(180);
  this.setTooltip("");
  this.setHelpUrl("");
   }
 };
-Blockly.JavaScript['global_variable'] = function(block) {
-  var text_varname = block.getFieldValue('varname');
+Blockly.JavaScript['set_global'] = function(block) {
+  var text_name = block.getFieldValue('name');
   var value_value = Blockly.JavaScript.valueToCode(block, 'value', Blockly.JavaScript.ORDER_ATOMIC);
-  var code = 'var '+text_varname+'='+value_value+';\n';
+  var code = 'this.'+text_name+'='+value_value+';\n';
   return code;
+};
+//Get Global variable
+Blockly.Blocks['getglobalvar'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("get global variable")
+        .appendField(new Blockly.FieldTextInput("myVariable"), "nm");
+    this.setOutput(true, null);
+    this.setColour(180);
+ this.setTooltip("");
+ this.setHelpUrl("");
+  }
+};
+Blockly.JavaScript['getglobalvar'] = function(block) {
+  var text_nm = block.getFieldValue('nm');
+  var code = "this."+text_nm;
+  return [code, Blockly.JavaScript.ORDER_NONE];
 };
 //Local variable
 Blockly.Blocks['local_variable'] = {
   init: function() {
     this.appendValueInput("value")
         .setCheck(null)
-        .appendField("set local variable")
+        .appendField("initialize local variable")
         .appendField(new Blockly.FieldTextInput("myVariable"), "varname")
         .appendField("to");
     this.appendStatementInput("todo")
@@ -797,7 +816,7 @@ Blockly.Blocks['set_var'] = {
   init: function() {
     this.appendValueInput("NAME")
         .setCheck(null)
-        .appendField("set variable")
+        .appendField("set local variable")
         .appendField(new Blockly.FieldTextInput("myVariable"), "varname")
         .appendField("to");
     this.setPreviousStatement(true, null);
@@ -817,7 +836,7 @@ Blockly.JavaScript['set_var'] = function(block) {
 Blockly.Blocks['get_var'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("get variable name")
+        .appendField("get local variable")
         .appendField(new Blockly.FieldTextInput("myVariable"), "varname");
     this.setOutput(true, null);
     this.setColour(180);
@@ -1334,6 +1353,22 @@ Blockly.JavaScript['misc_distance'] = function(block) {
   var code = "bapi_distance("+value_obj1+","+value_obj2+");";
   return [code, Blockly.JavaScript.ORDER_NONE];
 };
+//Run Javascript
+Blockly.Blocks['misc_javascript'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("Run Javascript code")
+        .appendField(new Blockly.FieldTextInput(""), "code");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(0);
+ this.setTooltip("");
+ this.setHelpUrl("");
+  }
+};
+Blockly.JavaScript['misc_javascript'] = function(block) {
+  return block.getFieldValue('code');
+};
 //Move forward
 Blockly.Blocks['d_move_forward'] = {
   init: function() {
@@ -1429,4 +1464,36 @@ Blockly.JavaScript['event_key'] = function(block) {
   var statements_blks = Blockly.JavaScript.statementToCode(block,'blks');
   var code = 'if(bapi_keypressed("'+dropdown_key+'")){'+statements_blks+'}\n';
   return code;
+};
+//On start event
+Blockly.Blocks['event_start'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("On game started");
+    this.appendStatementInput("blks")
+        .setCheck(null);
+    this.setColour(65);
+ this.setTooltip("");
+ this.setHelpUrl("");
+  }
+};
+Blockly.JavaScript['event_start'] = function(block) {
+  var statements_blks = Blockly.JavaScript.statementToCode(block,'blks');
+  var code = 'if(this.firstRun){'+statements_blks+'}\n';
+  return code;
+};
+//This object
+Blockly.Blocks['d_thisobject'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("this object");
+    this.setOutput(true, null);
+    this.setColour(120);
+ this.setTooltip("");
+ this.setHelpUrl("");
+  }
+};
+Blockly.JavaScript['d_thisobject'] = function(block) {
+  var code = 'getCurrentObject()';
+  return [code, Blockly.JavaScript.ORDER_NONE];
 };
