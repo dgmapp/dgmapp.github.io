@@ -43,6 +43,11 @@
 			width:32px;
 			height:32px;
 			position:inline-block;
+			transition:0.3s;
+		}
+		.modes:hover{
+			width:36px;
+			height:36px;
 		}
 		#modes{
 			width:96px;
@@ -52,7 +57,7 @@
 		#dialog{
 			display:block;
 			position:fixed;
-			z-index:102;
+			z-index:999999;
 			width:100%;
 			height:100%;
 			background-color:black;
@@ -64,10 +69,10 @@
 		}
 		#message{
 			position:fixed;
-			z-index:103;
+			z-index:10000000;
 			float:left;
 			left:10px;
-			top:10px;
+			top:24px;
 			width:50%;
 			background:white;
 			font-family:Arial;
@@ -121,7 +126,13 @@
 			position:fixed;
 			z-index:20200;
 			font-size:30px;
-			left:50%;
+			left:35%;
+			transition:0.3s;
+			width:30%;
+		}
+		#bsnc:hover{
+			left:30%;
+			width:40%;
 		}
 		#bdiv{
 			display:block;
@@ -137,6 +148,8 @@
 			height:48px;
 			margin:8px;
 			margin-top:2px;
+			transition:0.3s;
+			background:white;
 		}
 		.picw{
 			display:inline-block;
@@ -144,6 +157,8 @@
 			height:48px;
 			margin:8px;
 			margin-top:2px;
+			transition:0.3s;
+			background:white;
 		}
 		.picm{
 			display:inline-block;
@@ -153,6 +168,102 @@
 			margin-top:8px;
 			margin-bottom:8px;
 			margin-right:7px;
+			transition:0.3s;
+			background:white;
+		}
+		.pic:hover{
+			width:52px;
+			height:52px;
+		}
+		.picw:hover{
+			width:120px;
+			height:52px;
+		}
+		.picm:hover{
+			width:30px;
+			height:30px;
+		}
+		.moreobject{
+			width:300px;
+			height:200px;
+			background:white;
+			transition:0.3s;
+		}
+		.moreobject:hover{
+			width:310px;
+			height:210px;
+		}
+		.cancel{
+			margin:8px;
+			width:80px;
+			height:50px;
+			transition:0.3s;
+		}
+		.cancel:hover{
+			width:84px;
+			height:54px;
+		}
+		.ok{
+			margin:8px;
+			width:80px;
+			height:50px;
+			transition:0.3s;
+		}
+		.ok:hover{
+			width:84px;
+			height:54px;
+		}
+		#upbar{
+			position:fixed;
+			z-index:101;
+			left:1%;
+			width:98%;
+			height:22px;
+			background:rgb(210,210,210);
+			overflow:hidden;
+			opacity:0.9;
+			border-radius:10px;
+			white-space:nowrap;
+		}
+		.upbar{
+			font-family:Arial;
+			font-size:18px;
+			display:inline-block;
+			transition:0.3s;
+		}
+		.upbar:hover{
+			background:black;
+			color:white;
+		}
+		#title_outer{
+			width:100px;
+			overflow:hidden;
+		}
+		.ituut{
+			width:300px;
+			height:200px;
+			background:white;
+			transition:0.3s;
+		}
+		.ituut:hover{
+			width:310px;
+			height:210px;
+		}
+		.otuut{
+			display:inline-block;
+		}
+		#tutor{
+			display:none;
+			position:fixed;
+			z-index:10;
+			left:50%;
+			top:50%;
+			width:300px;
+			height:400px;
+			background:white;
+			font-family:Arial;
+			font-size:20px;
+			padding:20px;
 		}
 	</style>
 	<xml id="toolbox" style="display: none">
@@ -206,9 +317,10 @@
 		</category>
 		<category name="Variables" colour="#5ba5a5">
 		<block type="local_variable"></block>
-		<block type="global_variable"></block>
 		<block type="set_var"></block>
 		<block type="get_var"></block>
+		<block type="set_global"></block>
+		<block type="getglobalvar"></block>
 		</category>
 		<category name="Functions" colour="#5b5ba5">
 		<block type="function"></block>
@@ -222,6 +334,7 @@
 		<block type="d_move_turnright"></block>
 		</category>
 		<category name="Transformations" colour="#8800ff">
+		<block type="d_thisobject"></block>
 		<block type="d_setlocx"></block>
 		<block type="d_setlocy"></block>
 		<block type="d_setlocz"></block>
@@ -244,9 +357,11 @@
 		</category>
 		<category name="Miscellaneous" colour="#b93d3a">
 		<block type="misc_distance"></block>
+		<block type="misc_javascript"></block>
 		</category>
 		<category name="Events" colour="#aaa510">
 		<block type="event_key"></block>
+		<block type="event_start"></block>
 		</category>
 	</xml>
 	<body>
@@ -255,8 +370,13 @@
 			<div id="bdiv">
 			</div>
 		</div>
+		<div id="upbar">
+			<span class="upbar" id="title_outer"><span id="title_inner" style="margin-left:-200px;">Donkey 3.1 by giorkesk</span></span>
+			<span class="upbar" id="bgetstarted">Get Started</span>
+		</div>
 		<div id="message"></div>
-		<div id="editmode">Edit mode<img id="editmode_mat" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAZCAYAAAArK+5dAAAABHNCSVQICAgIfAhkiAAAAG5JREFUSIntlkEOgDAIBGd9tU/or/XW9IJhtRxMmGMbGCAlqfC4gnNFAeGFKQjzHaYgU8B4NCYSZBHs72BlTIuB0wGAqgWlI2pBCzYhXqy/w/9H1IKUwH4ZrgDgrBKs1Wf24dMeiIJOoors/0/EDfXHCys44HpKAAAAAElFTkSuQmCC"><img id="editmode_img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAABHNCSVQICAgIfAhkiAAAAJFJREFUSIm9lVEKwCAMQ8Puj4gX7n43ZzutMYIfIs0rbY0AYI/dwFut034dDEA5ABmCDEAlQyy6yJTxV4sB8zQ+rdiBebFuCzKwdIIrgdslnxGgDVEkxJzUEEaFrMBo1hXBpiAXKxPGkpROMgyS8ZY8WIkFSUy1ZrNbgZUNyDRM9pWzH6DXgiMGOWrFGRdGV8YbiwIRkLhp/y4AAAAASUVORK5CYII="></div>
+		<div id="tutor"></div>
+		<div id="editmode">Edit mode<img id="editmode_mat"></div>
 		<img id="stopbtn" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABHNCSVQICAgIfAhkiAAACBhJREFUaIHtmUtsVNcZx39n7p33jD32GGxj47HBxtg1pBAgCZVoIVRNUIBsqiZSV1WlVkqURZVs2nTfTaJWqiJV6kNqEylN1appFzRBRE6AEIc0POIYjGc848Fvezx4xnPn3rmvLsahmRdgWFhI/kt3MWfO+e73O+c733lcYYPNQyzHejvwoNoAWG9tAKy3NgDWWw89gFxekAVmZRlNlkGAZFp4DYMmy8ILxGT5riufxzKJWP+vlQdmHBJ5pxPLIZBNg3pdp8Wu7MElYEEuuiVWH7dl0mTZ+O4FYFI4+LxrB97+XtySRWF2BikWo28+RbsNH3f34JelOwJ4FybomMsiVn8vIhhqbUfeNYCv3oeeHCdwdZimnIarrG1UcpLY2Vtsa9sIXcOdWmR36haRuwGkgNEtWykM9ONqbUHHQHM6KUgyM8tDtKomqY4IDrdztYUDdySCU7nFykL6th3DWMReBZhH8OXmZpSBfnztbRh+N5okUA2Da8PX6MsXSiBmnV6ko4dR4xMYBR3b0Mm3NjN2fRT/3CJNZQAlIzgmuXG98gpt2xtRPzlH5qPzrEwtIO07RHaTt1jJtLBNc/URtDx9nM59vXC7zISvhc+I04vxs1fYdrAf48pnLJ8ZJLOo0vzTl0h9dw+ZMofSrgAD338Gj2Rhqyq27KXh5POEXv4JMaegXCUAo+E2uo7sRdwYo3F8nE2JBPXxOFIigWRaSEBTMoEvHscXj+NJxCHSQ0Aot8t88TjBtIIAVoBYdx+tj/cjYlEaxuNsTsTxR6Noy3nqjz9FzOcscUiT3XTs6cGRTOJPJvFNJDCSUzQcf5bFtlDF/CsJoaknjiKG/8Om0xcIqxoOQFMUcqfeRRgqLuCJ+Pjt+qYQDE0v4r18gd1jY7fLXZaJAGZxEHzxBdTBvxH8x2m6lDyyDfmJG3zx+msob/6e/P63sD6MlvSkVVgiPHKDVk3HFoLZqUmuPHWM1mf3Y/36fb4+A0tGwDxwEO36ZfryKlttmzbbZptlskvNEzFsJGCHYdx+unWdW7k8+sJsSXnnagiNeevoPfltsmc+on9FIWIVbXabBr1TSSaiS2x++iBpylVgU16lxzTZYRjsWk4TvxSl43sH0O4UQr5IG0psEieV8lYpu5tGuh6hhUnq/pusyDbttsnMm+/QcvQk03dZjQJA7vwQvq4ulLL/SpralokjUFelR6rk27vIBjJ7H8eOXaZLKVCeeOuA0JefI/c+yqLnzgROwFxK464PYdwJIDc2weYjR0hIAmuNDpfLBALfOsDi2bPU16jTfWuWedNHvsFzd3teH7apV3RkCYDnwiB25zeZ3tbJ1WCA6y4nN4Ugfx8ABaBhdy+Z67Ga4bdVz5MynYimamtsUTbFtSTQs41MLF4RiiUAOy6e4abSQOTVX6K+8GNuPLqbq6EgS/cBoAINLQ3kZ25Rmb2LasRiqWDhbqwNYALXnF52Hj/MwtmLlI9VyYj0ZRa59Pd/Ezy0H8++fUiGTc7v48bVEeT5FM1rANABX9CHka09fl5AKZg0BErdElKQ6ZZmNEXFEIKbbdvpbYS501fYdSeANtti6c+/Y/jjQeS9e2jcvZe+Q4fRRi8SffVXNGvmPQNYFIfXNmrPJgHYpoXDUTqJHa42Gn7+C8y8inA66Qtvxrj0Pv6LyYrRLGkZBB7JLNM6MgznzpMf+hRleoHGYydY2t6Mfs/ugwQUCgYOV+2Nnw7IksDUyztGwhUOYzc2QigE2RSZd0/RqVR6UJEdPcCAmicbvY6ajJMcPM3cG3+i/UdPo7z8h5oZpZodRSsQCPlr1lGAgEtGXy4NM9tcIvqb1zDSKwjLpC63Qls6TWMVGxUJWAJasdlhGOxWcuyYniQx+CldJ46yfI/OA7iApegUvkgztQJvQciEvRKFVK4MIItn5Bpbx8eJxBP0zszRrxYqJnBVgHJtsS3M06eQQ13cWsP5TQZSn40QPjBAoUadpMtHi8uGxXIAhXBeo9sw2GaaFVvomgDVTloBwDU/i+StW/McsD75mMDAPqaqgJvARGsnvuUkddlyyxYB0yIMNELVk1hVgFr5Qne6gcKathMCaLp0HtHxGPF6d8X/GpA5fAwzMcSWwv1fz5YAfOHxMOEQZClmCA2YQWB2bSeXGMW/xvf0zE8wNpZF39NLwiFQVu2mgWGvny1PHiTxz1NsfoDr5RKAT75zmOGmeqYF5IAMcNUToO2Hz7F08SxNa3zRQCHHxb++x/YXX2CkOcQCRbtxh8yVQ8fYN9BA6u0Pq07Oe1VJVCxv7SKkZYhFJ1jIqxgOB7Pt2+ho9TL5x3N0r9F4MzaeD95j+chLqHse4QajeHWduboGXPv3ogy+R8tUes073ZoAYngU7zMnaX6uHqFp4JD4RihA6uy7BM9cW/MlkgM4NHaJc7/9C10/eJ7wCRsKBSI+L+nJ68y9/haPGQ/2eaLEp/bYKNZ4Arugg8cDThkxN4XxwVm2r2hVl3H3v95Bi6ZqvmCnUSB86XPU0Ti2bYPHg0PJwtAFOiZnCZfVb1GXGXnjbXz3yCW+/oUm7pDIeDwsBfzk3G4kyyKUV2jMZunUDcpziQ1c9gUI6grdevUcZgM3hYOFQIBUwI8uSQQ1laZshja1ULGyTwvBfNBPT2aF2mt4DYCvNA+khUC2bZoprgUPKhOYAlQhCNt2Rc/fr6oCaBQPJILinuZBJtlXsileMZqAGyoOJverqgAPkx762+kNgPXWBsB6awNgvbUBsN566AH+BxSPXR4J8ef+AAAAAElFTkSuQmCC"/>
 		<div id="dialog">
 			<p style="font-size:30px;text-align:center;">Donkey Game Maker</p>

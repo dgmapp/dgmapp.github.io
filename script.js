@@ -3,7 +3,6 @@ DONKEY GAME MAKER 3.1
 
 By Most Boring Games & giorkesk
 */
-
 //The surface
 //imports
 import * as THREE from './threejs/build/three.module.js';
@@ -11,6 +10,11 @@ import {PLYLoader} from './threejs/examples/jsm/loaders/PLYLoader.js';
 import {FontLoader as BruhFontLoader} from './threejs/examples/jsm/loaders/FontLoader.js';
 import {MapControls} from './threejs/examples/jsm/controls/OrbitControls.js';
 import {TransformControls} from './threejs/examples/jsm/controls/TransformControls.js';
+
+//To change
+
+var SIP="localhost";
+
 //constants
 var renderer,
 	camera,
@@ -32,35 +36,63 @@ var renderer,
 	econtrols,
 	bdivp,
 	bsnc,
-	projectLoader;
+	projectLoader,
+	smgr,
+	ground,
+	title,
+	tutor;
+
 //variables
 var rad=(Math.PI/180);
 var deg=(180/Math.PI);
+
 var shadowbinds=[];
+var mapsize=400;
+
 var ext={};
-var cmapsize=400;
+
 var sc=[];
 var vsc=[];
 var scm=[];
+
 var pointer=new THREE.Vector2();
+
 var selection=-1;
 var previousSelection=-1;
+
 var spUpdateDelay=0;
 var shown_message="";var time_remain_message=0;
+
 var materialOnTheTable,defaultMaterial;
+
 var otherobjects;
+
 var virtual=false;
 var running=false;
+
 var keyspressed=[false,false,false,false];
+var keysdn=[];
+
 var econtrolobject=new THREE.Object3D();
 var econtrack;
 var edragged=false;
+
 var accache=new THREE.Vector3(0,0,0);
+
 var works={};
 var workc={};
 var blked={};
+
 var globalslot;
-var keysdn=[];
+
+var cgid="";
+
+var wsraw_unread=[];
+var wsdelay=50;
+
+var tutor_disp=[""];
+var tutor_disp_ind=0;
+
 //Data
 var assets_tl=[
 	"player",
@@ -74,6 +106,7 @@ var assets_tl=[
 	"cone",
 	"torus"
 ];
+
 var assets_names=[
 	"Player",
 	"Dog",
@@ -86,6 +119,7 @@ var assets_names=[
 	"Cone",
 	"Torus"
 ];
+
 var compNames=[
 	"Move with keys",
 	"Move according to cursor",
@@ -94,10 +128,9 @@ var compNames=[
 	"Avoid object",
 	"Get followed by the camera",
 	"Transfer data (position, values etc.)",
-	"Program with blocks (Blockly) <img src='assets/must_try.png'>",
-	"Use the object for every player in game (Multiplayer-only)",
-	"Share the object to all the players (Multiplayer-only)"
+	"Program with blocks (Blockly) <img src='assets/must_try.png'>"
 ];
+
 var compSids=[
 	"movekeys",
 	"movecursor",
@@ -106,11 +139,11 @@ var compSids=[
 	"avoid",
 	"camerafollow",
 	"transfer",
-	"blockly",
-	"client",
-	"share"
+	"blockly"
 ];
+
 var startMessage="Welcome to Donkey Game Maker!";
+
 var about=`
 	<h1>Donkey Game Maker 3.1</h1>
 	<h2>Created by MostBoringGames, giorkesk.</h2>
@@ -119,7 +152,283 @@ var about=`
 	<p><b>Libraries used:</b></p>
 	<p><a href="https://threejs.org">Three.js</a></p>
 	<p><a href="https://developers.google.com/blockly">Blockly</a></p>
+	</br>
+	<p>Skybox by Jockum Skoglund - <a href="https://www.zfight.com">www.zfight.com</a></p>
 `;
+
+var tuts={
+	"t1":["1.Create and move objects","t1"],
+	"t2":["2.Rotate and scale","t2"],
+	"t3":["3.Materials, rename and more","t3"],
+	"t4":["4.Move with keys or cursor","t4"],
+	"t5":["5.NPC Objects (Follow, Wander...)","t5"],
+	"t6":["6.Camera follow","t6"],
+	"t7":["7.Advanced programming","t7"],
+	"t8":["8.Sub-objects","t8"],
+	"t9":["9.Open and Save","t9"],
+	"t10":["10.Before you create anything...","t10"]
+};
+
+var tutorials_data={
+	"t1":[
+		`
+		Welcome to Donkey Game Maker!<br>
+		To create a game, you need to have some objects. You can keep the cube for using it on these tutorials, or create another object, and then delete the cube.<br>
+		When you create objects, click something from the right menu.
+		`,
+		`
+		<img style="background:black;height:100px;width:200px;" src="assets/tuts/objmenu.png"/>
+		`,
+		`
+		Change your selection from the left menu. It shows the objects and their names.<br>
+		<img style="background:black;height:100px;width:200px;" src="assets/tuts/leftmenu.png"/>
+		`,
+		`
+		Use these arrows to move your objects.<br>
+		<img style="background:black;height:100px;width:200px;" src="assets/tuts/arrows.png"/>
+		`,
+		`
+		The rectangles will also help you, if you want to move it on two axis.<br>
+		The center of the selector will move the object according to your view.
+		`,
+		`
+		You completed the tutorial!<br>
+		In the next one, you will learn how to rotate and scale oblects.
+		`
+	],
+	"t2":[
+		`
+		Scaling and rotation can be made with the same way as just moving.
+		`,
+		`
+		<img style="background:black;height:100px;width:200px;" src="assets/tuts/leftmenu.png"/><br>
+		The left menu has 3 icons at the top. The first changes to moving, the second to scaling and the third to rotation.
+		`,
+		`
+		You completed the tutorial!<br>
+		In the next one, you will learn how to apply color and material to your objects, and much more.
+		`
+	],
+	"t3":[
+		`
+		How a computer understands a material?<br>
+		How to apply it in an object here?<br>
+		How to organize your objects?<br>
+		All of these are going to get answered.<br>
+		You will learn about materials, renaming, cloning and deleting objects.
+		`,
+		`Here, a material is a color, with a value of metalness. If the metalness is 0, your object is not metallic. Then, at 20, it becomes plastic, then metal, and then completely reflective.<br>
+		Tip: The metalness must never be at a really high level, because it makes it feel like a mirror-like material.
+		`,
+		`
+		In the right menu, you will find the <img class="picm" src="assets/mat.png"/> icon (material icon). Select the object you want, and click this to open a dialog. You can edit the color, and metalness. Then, click 'Save and quit' to finalise the operation.
+		`,
+		`
+		Next to the material icon, there are some icons we will use in this tutorial.<br>
+		The <img class="picm" src="assets/del.png"/> icon is used to delete the selected object.<br>
+		The <img class="picm" src="assets/rename.png"/> icon is used to rename the selected object.<br>
+		The <img class="picm" src="assets/clone.png"/> icon is used to clone the selected object.<br>
+		`,
+		`
+		You completed the tutorial!<br>
+		In the next one, you will learn how to add <b>INTERACTIVITY</b> to your projects for the first time!
+		`
+	],
+	"t4":[
+		`
+		In Donkey Game Maker, there are multiple ways of adding interactivity to a game.<br>
+		Here, your will learn the simplest. But later, you can learn the more advanced methods,<br>
+		which can make your game more customized.
+		`,
+		`
+		This simple way of programming is done by adding components to an object.<br>
+		A component adds some functionality, like moving with the keyboard, or following another object.<br>
+		You can add components from the left menu, while having the object you want selected.
+		`,
+		`
+		Click the <button>Add component</button>&nbspbutton to open the list. Select a component, and click <button>OK</button>.<br>
+		`,
+		`
+		The first component we will learn about is the "Movement with keys" component.<br>
+		When added to an object, you can use the WASD (or arrows) keys to move it.
+		`,
+		`
+		But that's not all. Click the <img class="picw" src="assets/run.png"/> icon on the right menu
+		to run the game. Stop it by clicking the red square in the up-left corner.
+		`,
+		`
+		Most of the components have properties under them. You can edit the values to customise the component.<br>
+		For example, this component has a 'speed factor' property. If you change it to 2, it will double the movement speed.
+		`,
+		`
+		You completed the tutorial!<br>
+		In the next one, you will learn how to make an object follow another, or avoid it.
+		You will also learn how to make an object wander around slowly, to make your game more "alive".
+		`
+	],
+	"t5":[
+		`
+		Do you want to create objects that follow or avoid others?<br>
+		Do you want them to just wander around?<br>
+		You will learn how in this tutorial.
+		`,
+		`
+		First, we will learn how to follow or avoid.<br>
+		Add the Follow component exactly how you added the 'move with keys' component.<br>
+		<img style="background:black;height:200px;" src="assets/tuts/components.png"/>
+		`,
+		`
+		This component, has a 'object to follow' property and a 'speed factor' property.<br>
+		In 'object to follow', insert <b>the name</b> of the object to be followed.<br>
+		`,
+		`
+		In 'speed factor', insert 1 for normal speed, 2 for doubled speed,3 for tripled speed, or 0.5 for half the normal speed. 0 means no speed. You can enter whatever number you like.
+		`,
+		`
+		Now that you've learned how to setup this component, create another object, rename it, and write its name in the component. The component must be on a different object.<br>
+		The, click 'Run' to test it.<br>
+		If it won't work:
+		Check if the first object with the component has the name correctly.
+		`,
+		`
+		But we are not over yet. Try the avoid component, which will avoid the object in the 'object to avoid' property.<br>
+		This component will make the object run away from another.<br>
+		Basically, it is the opposite of the follow component.
+		`,
+		`
+		The last part in this tutorial will be the 'Wander' component.
+		When you add it, the object stays still, then randomly decides to move a bit, and again still. And again moving.
+		`,
+		`
+		The 'speed factor' works exactly like the others.<br>
+		The 'stand time factor' works like the speed factor, but if you change it from 2 to 3, it stands for a longer period of time.
+		The 'move time factor' is exactly like the previous, but it affects the periods of time the object moves.
+		`,
+		`
+		You completed the tutorial!<br>
+		In the next one, you will learn about how to make the camera follow the object.
+		`
+	],
+	"t6":[
+		`
+		Ever wondered how to make the camera follow the object, and look at it from the sky, or first person?
+		This is what you are going to learn here.
+		`,
+		`
+		First, add the 'Follow camera' component.<br>
+		This will make the camera follow the object, even if it moves.
+		`,
+		`
+		The 'Distance' property controls the distance between the camera and the object.<br>
+		The 'First Person Mode' property will enable first person camera, according to the rotation of the object. But it will also hide the object.
+		`,
+		`
+		You completed the tutorial!<br>
+		In the next tutorial, you will learn how to program your game with blocks.<br>
+		This new programming method can add a lot of features in your game.
+		`
+	],
+	"t7":[
+		`
+		Have you ever used blocks to create programs? Here, you will learn how to do it in Donkey Game Maker.
+		`,
+		`
+		First, create the 'Program with blocks' component.<br>
+		To organise the game, you can add multiple of these components per object.
+		This component has no properties, but an 'Edit blocks' button. Click it to open the block editor.<br>
+		`,
+		`
+		Click the categories, and drag blocks to create programs.<br>
+		Here, there are no events. Just add some floating blocks, and connect them if you want.<br>
+		The floating blocks will run repeatedly.
+		The blocks in 'On game started' event will run only one time.
+		`,
+		`
+		The blocks in 'On key pressed' event will run repatedly, while you press a key.
+		`,
+		`
+		Besides all the classic categories, you can use the "Movement" category to move the object and rotate it,<br>
+		or the "Transformations" category to make pure transformations.
+		`,
+		`
+		In the category 'Variables' there are global and local variables.<br>
+		The local variables need initialization, while the globals don't<br>
+		`,
+		`
+		Warning 1:Type the name of the variables exactly, without mistakes to successfully access it.<br>
+		Warning 2:Contain ONLY english characters, no numbers, and no spaces or symbols. Try simple names, such as 'loc' or 'rot'.<br>
+		`,
+		`
+		You completed the tutorial!<br>
+		In the next tutorial, you will learn how to create your own models, using sub-objects.<br>
+		`
+	],
+	"t8":[
+		`
+		Ever wondered how to create your own object, like a house?<br>
+		Here, you will learn how to add 'sub-objects' to modify an object the correct way.
+		`,
+		`
+		Why Sub-objects?<br>
+		If you add 'eyes' to a cube, then move it, the eyes will not move.<br>
+		To fix this, delete the previous eyes, and add them as sub-objects.
+		`,
+		`
+		Sub-objects are mini-objects attached to the main one. They can't have logic, blocks or names.<br>
+		There are some small buttons,
+		<img class="picm" src="assets/subadd.png"/>
+		<img class="picm" src="assets/subdel.png"/>
+		<img class="picm" src="assets/submat.png"/>
+		.
+		The first will add a sub-object on the selected object.
+		The second will delete the selected sub-object.
+		The third will edit the material of the sub-object.
+		`,
+		`
+		To move, rotate or scale a subobject, select its parent, and in the list, you will see these:<br>
+		<img style="background:black;height:200px;" src="assets/tuts/subobjects.png"/><br>
+		Click on any, and change the transform mode with the same buttons as before.
+		`,
+		`
+		Now, try making a door, by resizing the main object and adding a cylinder, and sphere as the handle.<br>
+		Move, rotate and scale the sphere and cylinder to create it.<br>
+		If you move this door, the handle will stay attached.
+		`,
+		`
+		You completed the tutorial!<br>
+		In the next tutorial, you will learn how to save and open your games from your local storage.
+		`
+	],
+	"t9":[
+		`
+		If you want to share your game with others, or save it to continue it later, you will need to use these buttons:<br>
+		<img class="picm" src="assets/read.png"/>
+		<img class="picm" src="assets/write.png"/>
+		`,
+		`
+		The first one will open a dialog, where you can upload your .DGM file.<br>
+		The second will download the project, in its current state.
+		`,
+		`
+		You completed the tutorial!<br>
+		Now, before you start creating games, look at the last tutorial.
+		`
+	],
+	"t10":[
+		`
+		Donkey Game Maker 3.1 is in Beta state (unstable).
+		Try to save your games frequently, so in case of a bug, you can restore a bit older&nbsp
+		version of the game.<br>
+		The creator is not responsible for any game corruption, or any illegal use of this software.<br>
+		And with that out of the way, click next!
+		`,
+		`
+		<h1>You have <b style="color:rgb(0,100,0);">completed</b> all of the tutorials!</h1>
+		Now, create whatever you want with everything you learned from here!
+		`
+	]
+};
+
 //Init and animate
 function init(){
 	//renderer!
@@ -145,14 +454,14 @@ function init(){
 		.load(['px.png','nx.png','py.png','ny.png','pz.png','nz.png']);
 	scene.background=env;
 	//default material!
-	defaultMaterial=new THREE.MeshPhongMaterial({color:0xFFFFFF,side:THREE.DoubleSide,envMap:env,reflectivity:0});
+	defaultMaterial=new THREE.MeshPhongMaterial({color:0xFFFFFF,side:THREE.DoubleSide,envMap:env,reflectivity:0,flatShading:false});
 	//controls!
 	//	mapcontrols
 	mapcontrols=new MapControls(camera,renderer.domElement);
 	mapcontrols.minPolarAngle=0;
-	mapcontrols.maxPolarAngle=rad*85;
-	mapcontrols.minDistance=30;
-	mapcontrols.maxDistance=300;
+	mapcontrols.maxPolarAngle=rad*90;
+	mapcontrols.minDistance=10;
+	mapcontrols.maxDistance=2000;
 	mapcontrols.enableDamping=true;
 	mapcontrols.dampingFactor=0.05;
 	//	events
@@ -174,19 +483,10 @@ function init(){
 	hemi.position.set(0,20,0);
 	scene.add(hemi);
 	//ground!
-	var groundloader=new THREE.TextureLoader();
-	groundloader.load("assets/ground.jpg",function(texture){
-		texture.wrapS=THREE.RepeatWrapping;
-		texture.wrapT=THREE.RepeatWrapping;
-		texture.repeat.set(cmapsize/10,cmapsize/10);
-		var ground=new THREE.Mesh(
-			new THREE.PlaneGeometry(cmapsize,cmapsize),
-			new THREE.MeshStandardMaterial({color:0x439130,side:THREE.DoubleSide,map:texture})
-		);
-		ground.position.set(0,0,0);
-		ground.rotation.set(rad*90,0,0);
-		scene.add(ground);
-	});
+	ground=new THREE.GridHelper(mapsize,(mapsize/2)-1);
+	scene.add(ground);
+	//server manager! (now unused)
+	smgr=new ServerManager(SIP);
 	//panel!
 	createPanel();
 	//load!
@@ -200,12 +500,19 @@ function init(){
 
 function animate(){
 	requestAnimationFrame(animate);
+	updateTitle();
 	if(!running){
 		if(tcontrols.dragging||econtrols.dragging){
 			mapcontrols.enabled=false;
 		}else{
 			mapcontrols.enabled=true;
 			mapcontrols.update();
+		}
+	}else{
+		wsdelay--;
+		if(wsdelay==0){
+			wsdelay=50;
+			updateWS();
 		}
 	}
 	updateMsg();
@@ -221,6 +528,16 @@ function animate(){
 }
 
 //The underworld
+
+function updateTitle(){
+	let margin=Number(title.style.marginLeft.split("px")[0]);
+	margin+=2;
+	if(margin>201){
+		margin=-200;
+	}
+	title.style.marginLeft=String(margin)+"px";
+}
+
 function runtick(){
 	for(var i=0;i<scm.length;i++){
 		var logic=scm[i]["logic"];
@@ -231,26 +548,39 @@ function runtick(){
 }
 
 function run(){
-	compileAll();
-	virtualize();
-	running=true;
-	subwindow.style.display="none";
-	stopbtn.style.display="block";
-	mapcontrols.enabled=false;
-	gcamera.position.x=camera.position.x;
-	gcamera.position.y=camera.position.y;
-	gcamera.position.z=camera.position.z;
-	gcamera.rotation.x=camera.rotation.x;
-	gcamera.rotation.y=camera.rotation.y;
-	gcamera.rotation.z=camera.rotation.z;
+	if(!running){
+		compileAll();
+		virtualize();
+		running=true;
+		ground.visible=false;
+		fixBlocklies();
+		subwindow.style.display="none";
+		panel.style.display="none";
+		stopbtn.style.display="block";
+		mapcontrols.enabled=false;
+		gcamera.position.x=camera.position.x;
+		gcamera.position.y=camera.position.y;
+		gcamera.position.z=camera.position.z;
+		gcamera.rotation.x=camera.rotation.x;
+		gcamera.rotation.y=camera.rotation.y;
+		gcamera.rotation.z=camera.rotation.z;
+		if(cgid!=""){
+			connectToServer();
+		}
+	}
 }
 
 function stop(){
 	unvirtualize();
 	running=false;
+	ground.visible=true;
 	subwindow.style.display="block";
+	panel.style.display="block";
 	stopbtn.style.display="none";
 	mapcontrols.enabled=true;
+	if(cgid!=""){
+		disconnectFromServer();
+	}
 }
 
 function virtualize(){
@@ -277,6 +607,17 @@ function unvirtualize(){
 			scene.add(sc[i]);
 		}
 		tcontrols.attach(sc[selection]);
+	}
+}
+
+function fixBlocklies(){
+	for(var i=0;i<scm.length;i++){
+		var logic=scm[i]["logic"];
+		for(var comp=0;comp<logic.length;comp++){
+			if(logic[comp].saveid=="blockly"){
+				logic[comp].firstRun=true;
+			}
+		}
 	}
 }
 
@@ -380,7 +721,7 @@ function addLogicComponent(){
 				margin-left:24px;
 			}
 		</style>
-		<p><button id="logicadd_ok">OK</button><button id="logicadd_cancel">Cancel</button></p>
+		<p><button id="logicadd_ok" class="ok">OK</button><button id="logicadd_cancel" class="cancel">Cancel</button></p>
 	`;
 	var logicSelectorPart=`
 		<p onclick="document.getElementById('logicadd_selection').innerHTML='{sid}';">
@@ -695,8 +1036,8 @@ function setTransformButtonsEvents(){
 function openMaterialDialog(mat){
 	var ihtml=`
 		<p style="font-size:30px;color:white;">Material editor
-			<button id="me_qcsave" style="margin-left:8px;">Save and close</button>
-			<button id="me_cancel" style="margin-left:8px;">Cancel</button></p>
+			<button id="me_qcsave" style="margin-left:8px;" class="ok">Save and close</button>
+			<button id="me_cancel" style="margin-left:8px;" class="cancel">Cancel</button></p>
 		<p>Color:<input type="color" id="me_color"></p>
 		<p>Metalness:<input type="range" min="0" max="100" id="me_metalness" style="width:75%;"></p>
 	`;
@@ -729,11 +1070,11 @@ function finishOOSelection(){
 }
 
 function getOOSelector(){
-	var final=`<p style="font-size:30px;color:white;">More Objects<button id="oo_cancel" style="margin-left:8px;">Cancel</button></p><p>`;
+	var final=`<p style="font-size:30px;color:white;">More Objects<button id="oo_cancel" style="margin-left:8px;" class="cancel">Cancel</button></p><p>`;
 	for(var i=0;i<assets_names.length;i++){
 		final+=`
 			<div style='display:inline-block;' id='oo_p`+String(i)+`'>
-				<img src='assets/moreobjects/`+assets_tl[i]+`.png' style='width:300px;height:200px;background:white;'>
+				<img src='assets/moreobjects/`+assets_tl[i]+`.png' class='moreobject'>
 				<p>`+assets_names[i]+`</p>
 			</div>
 		`;
@@ -792,8 +1133,11 @@ function clone(){
 
 function setNameSelection(){
 	try{
-		scm[selection]["name"]=window.prompt("Insert new name:",scm[selection]["name"]);
-		updateSubpanel();
+		var finalName=window.prompt("Insert new name:",scm[selection]["name"]);
+		if(finalName!=null){
+			scm[selection]["name"]=finalName;
+			updateSubpanel();
+		}
 	}catch(err){}
 }
 
@@ -813,6 +1157,7 @@ function delSub(){
 }
 
 function createPanel(){
+	panel=document.getElementById("panel");
 	subpanel=document.getElementById("subpanelc");
 	dialog=document.getElementById("dialog");
 	logicHtml=document.getElementById("logic");
@@ -822,6 +1167,8 @@ function createPanel(){
 	bsnc=document.getElementById("bsnc");
 	bsnc.addEventListener("click",saveQuit);
 	stopbtn.addEventListener("click",stop);
+	title=document.getElementById("title_inner");
+	tutor=document.getElementById("tutor");
 	setTransformButtonsEvents();
 	var bt=[
 		function(){
@@ -884,6 +1231,9 @@ function createPanel(){
 			document.getElementById("closeAbout").addEventListener("click",function(){
 				hideDialog();
 			});
+		},
+		function(){
+			openTutorials();
 		}
 	];
 	var elems=[
@@ -902,7 +1252,8 @@ function createPanel(){
 		document.getElementById("qrun"),
 		document.getElementById("qread"),
 		document.getElementById("qwrite"),
-		document.getElementById("qabout")
+		document.getElementById("qabout"),
+		document.getElementById("bgetstarted")
 	];
 	for(var i=0;i<elems.length;i++){
 		elems[i].addEventListener("click",bt[i]);
@@ -1055,7 +1406,7 @@ function addSub(){
 				margin:8px;
 			}
 		</style>
-		<button id="subobject_add_cancel">
+		<button id="subobject_add_cancel" class="cancel">
 		Cancel
 		</button>
 	`;
@@ -1227,6 +1578,246 @@ function download(data,fn){
 	document.body.appendChild(dum);
 	dum.style.display="none";
 	dum.click();
+}
+
+function openTutorials(){
+	let tcode=`
+		<p style="font-size:30px;color:white;">Tutorials
+			<button id="tut_cancel" style="margin-left:8px;" class="cancel">Cancel</button></p>
+		<p style="font-size:20px;color:white;">Here, you will learn how to use Donkey Game Maker.
+		(as the title says)</p>
+	`;
+	let tuut=[];
+	for(var tut in tuts){
+		let tut_txt=tuts[tut][0];
+		let tut_loc=tuts[tut][1];
+		let tuutcode=`
+			<div class="otuut" id="tut_${tut_loc}">
+				<img class="ituut" src="assets/tuts/${tut}.png"/>
+				<p style="color:white;font-size:20px;">${tut_txt}</p>
+			</div>
+		`;
+		tuut.push(tuutcode);
+	}
+	let tuutstr=tuut.join("");
+	tcode+=tuutstr;
+	editDialog(tcode);
+	document.getElementById("tut_cancel").addEventListener("click",function(){
+		hideDialog();
+	});
+	for(var tut in tuts){
+		var elem=document.getElementById("tut_"+tuts[tut][1]);
+		elem.addEventListener("click",function(){
+			openTutor(this.id.split("tut_")[1]);
+			hideDialog();
+		});
+	}
+	showDialog();
+}
+
+function openTutor(tutorial_id){
+	var tut=tutorials_data[tutorial_id];
+	tutor_disp=tut;
+	tutor_disp_ind=0;
+	updateTutor();
+	showTutor();
+}
+
+function showTutor(){
+	tutor.style.display='block';
+}
+
+function updateTutor(){
+	let tutorcode=`
+		<p>
+			<button id="tutor_prev">Prev</button>
+			<button id="tutor_next">Next</button>
+			<button id="tutor_close">Close</button>
+		</p>
+	`;
+	tutor.innerHTML=tutorcode+tutor_disp[tutor_disp_ind];
+	document.getElementById("tutor_prev").addEventListener("click",function(){
+		tutor_disp_ind--;
+		if(tutor_disp_ind==-1){
+			tutor_disp_ind=0;
+		}
+		updateTutor();
+	});
+	document.getElementById("tutor_next").addEventListener("click",function(){
+		tutor_disp_ind++;
+		if(tutor_disp_ind==tutor_disp.length){
+			tutor_disp_ind=tutor_disp.length-1;
+		}
+		updateTutor();
+	});
+	document.getElementById("tutor_close").addEventListener("click",function(){
+		hideTutor();
+	});
+}
+
+function hideTutor(){
+	tutor.style.display='none';
+}
+
+//server manager and external functions (obsolete)
+
+function connectToServer(){
+	smgr.conn();
+}
+
+function disconnectFromServer(){
+	smgr.close();
+}
+
+function sendToServer(msg){
+	smgr.ws.send(msg);
+}
+
+function updateWS(){
+	updateShared();
+}
+
+function isShared(logic){
+	var out=false;
+	for(var i=0;i<logic.length;i++){
+		if(logic[i].saveid="share"){
+			out=true;
+		}
+	}
+	return(out);
+}
+
+function getSharedObjectByName(name){
+	var out=null;
+	for(var i=0;i<scm.length;i++){
+		if(scm[i]["name"]==name){
+			if(isShared(scm[i]["logic"])){
+				out=vsc[i];
+			}
+		}
+	}
+	return(out);
+}
+
+function updateShared(){
+	for(var i=0;i<scm.length;i++){
+		for(var ii=0;ii<scm[i]["logic"].length;ii++){
+			if(scm[i]["logic"][ii].saveid=="share"){
+				sendToServer("share:"+
+					scm[i]["name"]+":"+
+					String(vsc[i].position.x)+":"+
+					String(vsc[i].position.y)+":"+
+					String(vsc[i].position.z)+":"+
+					String(vsc[i].rotation.x)+":"+
+					String(vsc[i].rotation.y)+":"+
+					String(vsc[i].rotation.z)
+				);
+			}
+		}
+	}
+}
+
+function srv_client(name,px,py,pz,rx,ry,rz){
+	var assigned_player=getSharedPlayerByName(name);
+	if(assigned_player!=undefined){
+		assigned_object.position.set(
+			px,
+			py,
+			pz
+		);
+		assigned_object.rotation.set(
+			rx,
+			ry,
+			rz
+		);
+	}
+}
+
+function srv_share(object,px,py,pz,rx,ry,rz){
+	var assigned_object=getSharedObjectByName(object);
+	if(assigned_object!=undefined){
+		assigned_object.position.set(
+			px,
+			py,
+			pz
+		);
+		assigned_object.rotation.set(
+			rx,
+			ry,
+			rz
+		);
+	}
+}
+
+function srv_msg(sender,value){
+	wsraw_unread.push({"sender":sender,"value":value});
+}
+
+class ServerManager{
+	constructor(ip="localhost",port=9001){
+		this.port=port;
+		this.ip=ip;
+		this.full_ip="ws://"+this.ip+":"+String(this.port);
+		this.ws=null;
+	}
+	conn(){
+		function onopen(){
+			this.send(cgid);
+			showMessage("Connected successfully.");
+		}
+		function onclose(){
+			if(running){
+				showMessage("<b style='color:red;'>Error!</b>&nbspConnection closed.");
+			}else{
+				showMessage("Connection closed.");
+			}
+		}
+		function onerror(e){
+			showMessage("<b style='color:red;'>Error!</b>&nbspConnection closed.");
+		}
+		function onmessage(e){
+			let msg=e.data;
+			console.log("message from ws: "+msg);
+			let sg=msg.split(":");
+			if(sg[0]=="client"){
+				srv_client(
+					String(sg[1]),
+					Number(sg[2]),
+					Number(sg[3]),
+					Number(sg[4]),
+					Number(sg[5]),
+					Number(sg[6]),
+					Number(sg[7])
+				);
+			}
+			if(sg[0]=="share"){
+				srv_share(
+					String(sg[1]),
+					Number(sg[2]),
+					Number(sg[3]),
+					Number(sg[4]),
+					Number(sg[5]),
+					Number(sg[6]),
+					Number(sg[7])
+				);
+			}
+			if(sg[0]=="msg"){
+				srv_msg(
+					String(sg[1]),
+					String(sg[2])
+				);
+			}
+		}
+		showMessage("Connecting...");
+		this.ws=new WebSocket(this.full_ip);
+		this.ws.onopen=onopen;
+		this.ws.onmessage=onmessage;
+		this.ws.onclose=onclose;
+		this.ws.onerror=onerror;
+	}
+	close(){
+		this.ws.close();
+	}
 }
 
 //loader
@@ -1908,10 +2499,15 @@ class BlocklyComponent{
 		};
 		
 		this.codeslot=codeslot;
+		this.firstRun=true;
 	}
 	execute(objid){
+			function getCurrentObject(){
+				return(scm[objid]["name"]);
+			}
 			var code=workc[this.codeslot];
 			eval(code);
+			this.firstRun=false;
 	}
 }
 
@@ -1919,11 +2515,15 @@ class ClientComponent{
 	constructor(){
 		this.saveid="client";
 		this.label="Use object for every remote player";
+		this.description="This object will represent the player. There will be multiple clones of it, for each player in the game.";
 		this.properties={
+			"Enabled (y/n)":"y"
 		};
 	}
 	execute(objid){
-		
+		if(this.properties["Enabled (y/n)"]=="y"){
+			
+		}
 	}
 }
 
@@ -1931,11 +2531,15 @@ class ShareComponent{
 	constructor(){
 		this.saveid="share";
 		this.label="Share object between players.";
+		this.description="If this object changes location in someone, it changes on everyone. Use it only when it is required, to avoid lag.";
 		this.properties={
+			"Enabled (y/n)":"y"
 		};
 	}
 	execute(objid){
-		
+		if(this.properties["Enabled (y/n)"]=="y"){
+			
+		}
 	}
 }
 
