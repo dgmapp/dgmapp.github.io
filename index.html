@@ -25,7 +25,8 @@
 		#panel{
 			position:fixed;
 			z-index:101;
-			right:1px;
+			float:right;
+			right:0;
 			top:20%;
 			width:150px;
 			height:80%;
@@ -82,8 +83,15 @@
 			z-index:101;
 			left:10px;
 			top:10px;
-			width:48px;
-			height:48px;
+			width:55px;
+			height:55px;
+			transition:0.3s;
+		}
+		#stopbtn:hover{
+			left:8px;
+			top:8px;
+			width:59px;
+			height:59px;
 		}
 		#editmode{
 			display:none;
@@ -318,7 +326,9 @@
 		<block type="set_var"></block>
 		<block type="get_var"></block>
 		<block type="set_global"></block>
-		<block type="getglobalvar"></block>
+		<block type="get_global"></block>
+		<block type="set_game"></block>
+		<block type="get_game"></block>
 		</category>
 		<category name="Functions" colour="#5b5ba5">
 		<block type="function"></block>
@@ -333,6 +343,7 @@
 		</category>
 		<category name="Transformations" colour="#8800ff">
 		<block type="d_thisobject"></block>
+		<block type="d_thecamera"></block>
 		<block type="d_setlocx"></block>
 		<block type="d_setlocy"></block>
 		<block type="d_setlocz"></block>
@@ -369,16 +380,16 @@
 			</div>
 		</div>
 		<div id="upbar">
-			<span class="upbar" id="title_outer"><span id="title_inner" style="margin-left:-200px;">Donkey 3.1 by giorkesk</span></span>
+			<span class="upbar" id="title_outer"><span id="title_inner" style="margin-left:-200px;">Donkey 3.1.2 by giorkesk</span></span>
 			<span class="upbar" id="bgetstarted">Get Started</span>
 		</div>
 		<div id="message"></div>
 		<div id="tutor"></div>
 		<div id="editmode">Edit mode<img id="editmode_mat"></div>
-		<img id="stopbtn" src="data:image/png;base64,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"/>
+		<img id="stopbtn" src="assets/stop.png"/>
 		<div id="dialog">
 			<p style="font-size:30px;text-align:center;">Donkey Game Maker</p>
-			<p style="font-size:20px;text-align:center;">Version 3.0</br>
+			<p style="font-size:20px;text-align:center;">Version 3.1.2</br>
 				by Most Boring Games</p>
 			<p style="font-size:10px;text-align:center;color:gray;">
 			Legal Disclaimer: This is a non-commercial project.</p>

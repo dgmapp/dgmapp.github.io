@@ -771,7 +771,7 @@ Blockly.JavaScript['set_global'] = function(block) {
   return code;
 };
 //Get Global variable
-Blockly.Blocks['getglobalvar'] = {
+Blockly.Blocks['get_global'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("get global variable")
@@ -782,9 +782,47 @@ Blockly.Blocks['getglobalvar'] = {
  this.setHelpUrl("");
   }
 };
-Blockly.JavaScript['getglobalvar'] = function(block) {
+Blockly.JavaScript['get_global'] = function(block) {
   var text_nm = block.getFieldValue('nm');
   var code = "this."+text_nm;
+  return [code, Blockly.JavaScript.ORDER_NONE];
+};
+//Set Game variable
+Blockly.Blocks['set_game'] = {
+  init: function() {
+    this.appendValueInput("value")
+        .setCheck(null)
+        .appendField("Set game variable")
+        .appendField(new Blockly.FieldTextInput("myVariable"), "name")
+        .appendField("to");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(180);
+ this.setTooltip("");
+ this.setHelpUrl("");
+  }
+};
+Blockly.JavaScript['set_game'] = function(block) {
+  var text_name = block.getFieldValue('name');
+  var value_value = Blockly.JavaScript.valueToCode(block, 'value', Blockly.JavaScript.ORDER_ATOMIC);
+  var code = "bapi_set_gamevar('"+text_name+"',"+value_value+");\n";
+  return code;
+};
+//Get Game variable
+Blockly.Blocks['get_game'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("get game variable")
+        .appendField(new Blockly.FieldTextInput("myVariable"), "nm");
+    this.setOutput(true, null);
+    this.setColour(180);
+ this.setTooltip("");
+ this.setHelpUrl("");
+  }
+};
+Blockly.JavaScript['get_game'] = function(block) {
+  var text_nm = block.getFieldValue('nm');
+  var code = "bapi_get_gamevar('"+text_nm+"')";
   return [code, Blockly.JavaScript.ORDER_NONE];
 };
 //Local variable
@@ -1350,7 +1388,7 @@ Blockly.Blocks['misc_distance'] = {
 Blockly.JavaScript['misc_distance'] = function(block) {
   var value_obj1 = Blockly.JavaScript.valueToCode(block, 'obj1', Blockly.JavaScript.ORDER_ATOMIC);
   var value_obj2 = Blockly.JavaScript.valueToCode(block, 'obj2', Blockly.JavaScript.ORDER_ATOMIC);
-  var code = "bapi_distance("+value_obj1+","+value_obj2+");";
+  var code = "bapi_distance("+value_obj1+","+value_obj2+")";
   return [code, Blockly.JavaScript.ORDER_NONE];
 };
 //Run Javascript
@@ -1495,5 +1533,20 @@ Blockly.Blocks['d_thisobject'] = {
 };
 Blockly.JavaScript['d_thisobject'] = function(block) {
   var code = 'getCurrentObject()';
+  return [code, Blockly.JavaScript.ORDER_NONE];
+};
+//The camera
+Blockly.Blocks['d_thecamera'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("the camera");
+    this.setOutput(true, null);
+    this.setColour(120);
+ this.setTooltip("");
+ this.setHelpUrl("");
+  }
+};
+Blockly.JavaScript['d_thecamera'] = function(block) {
+  var code = 'getGameCamera()';
   return [code, Blockly.JavaScript.ORDER_NONE];
 };

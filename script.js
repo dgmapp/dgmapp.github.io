@@ -40,7 +40,10 @@ var renderer,
 	smgr,
 	ground,
 	title,
-	tutor;
+	tutor,
+	arrowh,
+	dir,
+	texloader;
 
 //variables
 var rad=(Math.PI/180);
@@ -92,6 +95,13 @@ var wsdelay=50;
 
 var tutor_disp=[""];
 var tutor_disp_ind=0;
+
+var gameVariables;
+
+var testTexture;
+var updtexd=0;
+
+var ttxs={};
 
 //Data
 var assets_tl=[
@@ -145,7 +155,7 @@ var compSids=[
 var startMessage="Welcome to Donkey Game Maker!";
 
 var about=`
-	<h1>Donkey Game Maker 3.1</h1>
+	<h1>Donkey Game Maker 3.1.2</h1>
 	<h2>Created by MostBoringGames, giorkesk.</h2>
 	<p>DISCLAIMER: This is a non-commercial project.</p>
 	</br>
@@ -166,7 +176,8 @@ var tuts={
 	"t7":["7.Advanced programming","t7"],
 	"t8":["8.Sub-objects","t8"],
 	"t9":["9.Open and Save","t9"],
-	"t10":["10.Before you create anything...","t10"]
+	"t10":["10.Before you create anything...","t10"],
+	"t11":["11.The internals","t11"]
 };
 
 var tutorials_data={
@@ -426,6 +437,22 @@ var tutorials_data={
 		<h1>You have <b style="color:rgb(0,100,0);">completed</b> all of the tutorials!</h1>
 		Now, create whatever you want with everything you learned from here!
 		`
+	],
+	"t11":[
+		`
+		If you know how to use Three.js, the graphics library used for DGM3, you can do more things than you do with just blocks. You will use the Run javascript block to run commands.
+		`,
+		`
+		<i>gcamera</i> - THREE.PerspectiveCamera used while the game runs.<br>
+		<i>renderer</i> - THREE.WebGLRenderer used all the time.<br>
+		<i>scene</i> - THREE.Scene used in editing.<br>
+		<i>vsc</i> - THREE.Scene used while the game runs.<br>
+		`,
+		`
+		<i>hemi</i> - THREE.HemisphereLight.<br>
+		<i>dir</i> - THREE.DirectionalLight. (for shadows)<br>
+		more documentation coming soon.
+		`
 	]
 };
 
@@ -434,6 +461,8 @@ function init(){
 	//renderer!
 	renderer=new THREE.WebGLRenderer({antialias:true});
 	renderer.setSize(dwh()[0],dwh()[1]);
+	renderer.shadowMap.enabled=true;
+	renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 	document.getElementById("content").appendChild(renderer.domElement);
 	//camera!
 	camera=new THREE.PerspectiveCamera(30,dwh()[0]/dwh()[1],1,10000);
@@ -478,10 +507,25 @@ function init(){
 	econtrols=new TransformControls(camera,renderer.domElement);
 	scene.add(econtrols);
 	scene.add(econtrolobject);
-	//light!
-	hemi=new THREE.HemisphereLight(0xffffff,0x333333,1);
-	hemi.position.set(0,20,0);
+	//lights!
+	hemi=new THREE.HemisphereLight(0xffffff,0x333333,0.5);
+	hemi.position.set(0,200,0);
 	scene.add(hemi);
+	dir=new THREE.DirectionalLight(0xffffff,1);
+	dir.shadow.camera.left=-400;
+	dir.shadow.camera.right=400;
+	dir.shadow.camera.top=400;
+	dir.shadow.camera.bottom=-400;
+	dir.shadow.mapSize.x=4096;
+	dir.shadow.mapSize.y=4096;
+	dir.shadow.bias=-0.005;
+	dir.castShadow=true;
+	dir.position.set(0,200,0);
+	scene.add(dir);
+	let dirdir=new THREE.Object3D();
+	dirdir.position.set(0,0,50);
+	scene.add(dirdir);
+	dir.target=dirdir;
 	//ground!
 	ground=new THREE.GridHelper(mapsize,(mapsize/2)-1);
 	scene.add(ground);
@@ -491,11 +535,12 @@ function init(){
 	createPanel();
 	//load!
 	plyLoader=new PLYLoader();
+	texloader=new THREE.TextureLoader();
 	projectLoader=new DGMLoader();
 	loadReq(0);
 	//animation!
 	animate();
-	//end. 
+	//end.
 }
 
 function animate(){
@@ -525,15 +570,16 @@ function animate(){
 	}else{
 		renderer.render(scene,camera);
 	}
+	updateTextures();
 }
 
 //The underworld
 
 function updateTitle(){
 	let margin=Number(title.style.marginLeft.split("px")[0]);
-	margin+=2;
-	if(margin>201){
-		margin=-200;
+	margin-=2;
+	if(margin<-200){
+		margin=200;
 	}
 	title.style.marginLeft=String(margin)+"px";
 }
@@ -554,6 +600,7 @@ function run(){
 		running=true;
 		ground.visible=false;
 		fixBlocklies();
+		gameVariables={};
 		subwindow.style.display="none";
 		panel.style.display="none";
 		stopbtn.style.display="block";
@@ -687,7 +734,7 @@ function updateLogicHtml(){
 			scm[selection]["logic"][compid].properties[propname]=String(newval);
 		});
 	}
-	blked=[];
+	blked={};
 	for(var i=0;i<clogic.length;i++){
 		if(clogic[i].label=="Block program"){
 			var elem=document.getElementById("blked"+String(i));
@@ -814,6 +861,8 @@ function loadReq(ind){
 		geo.computeVertexNormals();
 		var dmat=defaultMaterial.clone();
 		ext[assets_tl[ind]]=new THREE.Mesh(geo,dmat);
+		ext[assets_tl[ind]].castShadow=true;
+		ext[assets_tl[ind]].receiveShadow=true;
 		ext[assets_tl[ind]].rotation.set(rad*270,0,0);
 		if(ind==assets_tl.length-1){
 			onReqLoaded();
@@ -1040,12 +1089,19 @@ function openMaterialDialog(mat){
 			<button id="me_cancel" style="margin-left:8px;" class="cancel">Cancel</button></p>
 		<p>Color:<input type="color" id="me_color"></p>
 		<p>Metalness:<input type="range" min="0" max="100" id="me_metalness" style="width:75%;"></p>
+		<p>Texture URL:<input type="text" id="me_texture"></p>
+		<p style="font-size:12px;">The URL must not block CORS requests in order to load the texture.</p>
 	`;
 	editDialog(ihtml);
 	document.getElementById("me_qcsave").addEventListener("click",closeMaterialDialog);
 	document.getElementById("me_cancel").addEventListener("click",hideDialog);
 	document.getElementById("me_color").value="#"+mat.color.getHexString();
 	document.getElementById("me_metalness").value=mat.reflectivity*100;
+	let tx=mat.userData.tex;
+	if(tx==undefined){
+		tx="";
+	}
+	document.getElementById("me_texture").value=tx;
 	showDialog();
 	materialOnTheTable=mat;
 }
@@ -1057,6 +1113,12 @@ function closeMaterialDialog(){
 	];
 	materialOnTheTable.color=data[0];
 	materialOnTheTable.reflectivity=data[1]/100;
+	let tx=document.getElementById("me_texture").value;
+	if(tx==null||tx==""){
+		tx=undefined;
+	}
+	materialOnTheTable.userData.tex=tx;
+	materialOnTheTable=undefined;
 	hideDialog();
 }
 
@@ -1127,7 +1189,9 @@ function clone(){
 		for(var i=0;i<newmesh.children.length;i++){
 			newmesh.children[i].material=newmesh.children[i].material.clone();
 		}
+		let prevLogic=scm[selection]["logic"];
 		addMesh(newmesh,scm[selection]["name"]+" clone",scm[selection]["base"]);renewSelection();
+		scm[selection]["logic"]=prevLogic;
 	}catch(err){}
 }
 
@@ -1451,11 +1515,15 @@ function closeBlocks(){
 }
 
 function loadBlocks(txt){
-	var xml;
-	if((txt!="")&&(txt!=undefined)){
-		xml=Blockly.Xml.textToDom(txt);
-		Blockly.Xml.domToWorkspace(xml,Blockly.mainWorkspace);
-	}else{
+	try{
+		var xml;
+		if((txt!="")&&(txt!=undefined)){
+			xml=Blockly.Xml.textToDom(txt);
+			Blockly.Xml.domToWorkspace(xml,Blockly.mainWorkspace);
+		}else{
+			clearBlocks();
+		}
+	}catch(err){
 		clearBlocks();
 	}
 }
@@ -1504,6 +1572,9 @@ function saveQuit(){
 
 function bapi_gobj(name){
 	var out=undefined;
+	if(name=="*!GAMECAMERA!"){
+		out=gcamera;
+	}
 	for(var i=0;i<scm.length;i++){
 		if(scm[i]["name"]==name){
 			out=vsc[i];
@@ -1517,7 +1588,6 @@ function bapi_distance(name1,name2){
 	var obj2=bapi_gobj(name2).position;
 	var s1=(obj2.x-obj1.x)*(obj2.x-obj1.x);
 	var s2=(obj2.z-obj1.z)*(obj2.z-obj1.z);
-	console.log(Math.sqrt(s1+s2));
 	return(Math.sqrt(s1+s2));
 }
 
@@ -1552,6 +1622,14 @@ function bapi_backwards(objid,steps){
 function bapi_turn(rad,objid){
 	var obj=vsc[objid];
 	obj.rotation.z+=rad;
+}
+
+function bapi_set_gamevar(key,value){
+	gameVariables[key]=value;
+}
+
+function bapi_get_gamevar(key){
+	return(gameVariables[key]);
 }
 
 function bapi_keypressed(keyid){
@@ -1657,6 +1735,63 @@ function updateTutor(){
 
 function hideTutor(){
 	tutor.style.display='none';
+}
+
+function updateTextures(){
+	updtexd++;
+	if(updtexd>=60){
+		updtexd=0;
+		if(materialOnTheTable==undefined){
+			updateTexturesA();
+		}
+	}
+}
+
+function updateTexturesA(){
+	function setMap(object,map){
+		let tx=object.material.userData.tex;
+		object.material=new THREE.MeshPhongMaterial({
+			color:object.material.color,
+			side:THREE.DoubleSide,
+			envMap:env,
+			reflectivity:object.material.reflectivity,
+			flatShading:false,
+			map:map
+		});
+		object.material.userData.tex=tx;
+	}
+	function execForMaterial(material,object){
+		if(material.userData.tex!=""&&material.userData.tex!=undefined){
+			let texid=material.userData.tex;
+			if(ttxs[texid]!=undefined){
+				setMap(object,ttxs[texid]);
+			}else{
+				texloader.load(texid,function(texture){
+					texture.wrapS=true;
+					texture.wrapT=true;
+					texture.repeat.x=1;
+					texture.repeat.y=1;
+					texture.needsUpdate=true;
+					ttxs[texid]=texture;
+					setMap(object,texture);
+				});
+			}
+		}else{
+			material.map=undefined;
+		}
+	}
+	let currentScene;
+	if(virtual){
+		currentScene=vsc;
+	}else{
+		currentScene=sc;
+	}
+	for(var i=0;i<currentScene.length;i++){
+		execForMaterial(currentScene[i].material,currentScene[i]);
+		for(var ii=0;ii<currentScene[i].children.length;ii++){
+			execForMaterial(currentScene[i].children[ii].material,currentScene[i].children[ii]);
+		}
+	}
 }
 
 //server manager and external functions (obsolete)
@@ -1777,7 +1912,6 @@ class ServerManager{
 		}
 		function onmessage(e){
 			let msg=e.data;
-			console.log("message from ws: "+msg);
 			let sg=msg.split(":");
 			if(sg[0]=="client"){
 				srv_client(
@@ -1846,6 +1980,10 @@ class DGMLoader{
 			nbj.material=nbj.material.clone();
 			nbj.material.color=new THREE.Color(Number(objdata["mc"]));
 			nbj.material.reflectivity=Number(objdata["mm"]);
+			let ttex=objdata["mx"];
+			if(ttex!="%none"){
+				nbj.material.userData.tex=String(ttex);
+			}
 			nbj.position.set(
 				Number(objdata["px"]),
 				Number(objdata["py"]),
@@ -2062,12 +2200,18 @@ class DGMLoader{
 		//build scene sector
 		var lobj=[];
 		for(var i=0;i<sc.length;i++){
+			let ttex=sc[i].material.userData.tex;
+			if(ttex==undefined){
+				ttex="%none";
+			}
+			console.log(ttex);
 			var otable={
 				"dp":String(""),
 				"dn":String(scm[i]["name"]),
 				"db":String(scm[i]["base"]),
 				"mc":String(sc[i].material.color.getHex()),
 				"mm":String(sc[i].material.reflectivity),
+				"mx":String(ttex),
 				"px":String(sc[i].position.x),
 				"py":String(sc[i].position.y),
 				"pz":String(sc[i].position.z),
@@ -2088,13 +2232,17 @@ class DGMLoader{
 			lobj.push(oobjs);
 			var subobjects=sc[i].children;
 			for(var sub=0;sub<subobjects.length;sub++){
-				
+					let ttex=subobjects[sub].material.userData.tex;
+					if(ttex==undefined){
+						ttex="%none";
+					}
 					var subtable={
 						"dp":String(""),
 						"dn":String(["name"]),
 						"db":String(scm[i]["subbases"][sub]),
 						"mc":String(subobjects[sub].material.color.getHex()),
 						"mm":String(subobjects[sub].material.reflectivity),
+						"mx":String(ttex),
 						"px":String(subobjects[sub].position.x),
 						"py":String(subobjects[sub].position.y),
 						"pz":String(subobjects[sub].position.z),
@@ -2494,7 +2642,7 @@ class BlocklyComponent{
 	constructor(codeslot){
 		this.saveid="blockly";
 		this.label="Block program";
-		this.description="A bit more advanced programming. Useful for really detailed games.";
+		this.description="A bit more advanced programming. Useful for detailed games.";
 		this.properties={
 		};
 		
@@ -2504,6 +2652,9 @@ class BlocklyComponent{
 	execute(objid){
 			function getCurrentObject(){
 				return(scm[objid]["name"]);
+			}
+			function getGameCamera(){
+				return("*!GAMECAMERA!");
 			}
 			var code=workc[this.codeslot];
 			eval(code);
